@@ -1,35 +1,36 @@
-const stripe = require('stripe')(process.env.SECRET_KEY)
-const uuid = require('uuid/v4');
+const stripe = require("stripe")(process.env.SECRET_KEY);
+const uuid = require("uuid/v4");
 
-const db = require('../DB');
-
+const db = require("../DB");
 
 module.exports = {
   checkout
-}
+};
 
 async function checkout(req, res, next) {
-  // console.log(req.body)
+  console.log(req.body);
 
   let error;
   let status;
 
   try {
-    const { product, token } = req.body;
-    const customer = await
-      stripe.customers.create({
-        email: token.email,
-        source: token.id
-      });
+    const { token, cart, total } = req.body;
+    // Create stripe customer
+    const customer = await stripe.customers.create({
+      name: token.card.name,
+      email: token.email,
+      source: token.id
+    });
 
     const idempotency_key = uuid();
+    // Create stripe charge
     const charge = await stripe.charges.create(
       {
-        amount: product.price * 100,
-        currency: 'usd',
+        amount: total * 100,
+        currency: "usd",
         customer: customer.id,
         receipt_email: token.email,
-        description: `Purchased the ${product.name}`,
+        description: `Purchased the ${cart.name}`,
         shipping: {
           name: token.card.name,
           address: {
@@ -40,29 +41,36 @@ async function checkout(req, res, next) {
             postal_code: token.card.address_zip
           }
         }
-
       },
       {
         idempotency_key
       }
     );
-    // Inserting data to database
-    let user = { id: customer.id, name: token.card.name, address: token.card.address_city, email: token.email }
-    let order = { productName: product.name, total: product.price, userId: customer.id }
-    db.connection.query('INSERT INTO users SET ?', user, (err) => {
-      if (err) throw err;
-    });
-    db.connection.query('INSERT INTO orders SET ?', order, (err) => {
-      if (err) throw err;
-    });
 
+    //Inserting data to database
+    // let user = {
+    //   id: customer.id,
+    //   name: token.card.name,
+    //   address: token.card.address_city,
+    //   email: token.email
+    // };
+    // let order = {
+    //   productName: product.name,
+    //   total: product.price,
+    //   userId: customer.id
+    // };
+    // db.connection.query("INSERT INTO users SET ?", user, err => {
+    //   if (err) throw err;
+    // });
+    // db.connection.query("INSERT INTO orders SET ?", order, err => {
+    //   if (err) throw err;
+    // });
 
-    console.log('Charge:', { charge });
-    status = 'success';
-
+    console.log("Charge:", { charge });
+    status = "success";
   } catch (error) {
-    console.error('Error:', error);
-    status = 'failure';
+    console.error("Error:", error);
+    status = "failure";
   }
   res.json({ error, status });
 }
