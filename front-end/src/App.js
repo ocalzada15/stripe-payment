@@ -5,6 +5,9 @@ import StripeCheckout from "react-stripe-checkout";
 import axios from "axios";
 import { toast } from "react-toastify";
 
+import { Elements, StripeProvider } from "react-stripe-elements";
+import CheckoutElm from "./components/Cart";
+
 toast.configure();
 const newCart = [];
 const amount = [];
@@ -13,6 +16,8 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      orders: [],
+      payments: [],
       cart: [],
       total: 0,
 
@@ -35,23 +40,44 @@ class App extends Component {
       ]
     };
   }
+  componentDidMount() {
+    this.getAllOrders();
+    this.getAllPayments();
+  }
 
-  hanldeToken = async token => {
-    let cart = this.state.cart;
-    let total = this.state.total;
+  getAllOrders = async () => {
+    const results = await axios.get("http://localhost:3001/api/checkout/all");
 
-    const response = await axios.post("http://localhost:3001/api/checkout", {
-      token,
-      cart,
-      total
+    this.setState({
+      orders: results.data
     });
-    const { status } = response.data;
-    if (status === "success") {
-      toast("Success!", { type: "success" });
-    } else {
-      toast("Error", { type: "error" });
-    }
   };
+  getAllPayments = async () => {
+    const results = await axios.get(
+      "http://localhost:3001/api/checkout/payments"
+    );
+
+    this.setState({
+      payments: results.data
+    });
+  };
+
+  // hanldeToken = async token => {
+  //   let cart = this.state.cart;
+  //   let total = this.state.total;
+
+  //   const response = await axios.post("http://localhost:3001/api/checkout", {
+  //     token,
+  //     cart,
+  //     total
+  //   });
+  //   const { status } = response.data;
+  //   if (status === "success") {
+  //     toast("Success!", { type: "success" });
+  //   } else {
+  //     toast("Error", { type: "error" });
+  //   }
+  // };
 
   handleCart = () => {
     this.setState({
@@ -60,13 +86,20 @@ class App extends Component {
     });
   };
 
+  handleDelete = idx => {
+    let item = this.state.product[idx];
+    let p = item.price;
+    let m = amount.indexOf(p);
+    newCart.splice(newCart.indexOf(item), 1);
+    amount.splice(m, 1);
+    this.handleCart();
+  };
+
   handleClick = idx => {
     let item = this.state.product[idx];
     newCart.push(item);
     amount.push(parseFloat(item.price));
     this.handleCart();
-
-    console.log(amount);
   };
 
   render() {
@@ -76,6 +109,12 @@ class App extends Component {
           <div key={idx}>
             <p>
               {c.name} | ${c.price}
+              <button
+                className="btn btn-sm btn-danger ml-5"
+                onClick={() => this.handleDelete(idx)}
+              >
+                X
+              </button>
             </p>
 
             <hr />
@@ -83,11 +122,11 @@ class App extends Component {
         ))}
       </div>
     ) : (
-        <div>
-          <h4>Your card is empty</h4>
-          <p>Click on "Add to cart" to add an item</p>
-        </div>
-      );
+      <div>
+        <h4>Your card is empty</h4>
+        <p>Click on "Add to cart" to add an item</p>
+      </div>
+    );
 
     return (
       <div className="container my-5">
@@ -121,7 +160,7 @@ class App extends Component {
             </div>
             <div className="row">
               <div align="center" className="col mt-2">
-                <StripeCheckout
+                {/* <StripeCheckout
                   stripeKey={process.env.REACT_APP_STRIPE_KEY}
                   // token={() => this.hanldeToken(this.state)}
                   token={this.hanldeToken}
@@ -129,9 +168,44 @@ class App extends Component {
                   shippingAddress
                   amount={this.state.total * 100}
                   name="cart"
-                />
+                /> */}
+                <StripeProvider apiKey={process.env.REACT_APP_STRIPE_KEY}>
+                  <div className="example">
+                    <Elements>
+                      <CheckoutElm
+                        total={this.state.total}
+                        cart={this.state.cart}
+                      />
+                    </Elements>
+                  </div>
+                </StripeProvider>
               </div>
             </div>
+          </div>
+        </div>
+        <br />
+        <hr />
+        <div className="row">
+          <div className="col">
+            <h4>Orders results</h4>
+            <ol>
+              {this.state.orders.map((o, idx) => (
+                <li key={idx}>
+                  Order Id: {o.id} | Total: ${o.total}
+                </li>
+              ))}
+            </ol>
+          </div>
+          <div className="col">
+            <h4>Payments</h4>
+            {this.state.payments.map((p, idx) => (
+              <div key={idx}>
+                <p>
+                  Brand: {p.brand} | Exp Month: {p.exp_month} | Last 4:{" "}
+                  {p.last4}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       </div>

@@ -4,8 +4,90 @@ const uuid = require("uuid/v4");
 const db = require("../DB");
 
 module.exports = {
-  checkout
+  checkout,
+  getAll,
+  getPayments,
+  test2
 };
+
+function getPayments(req, res, next) {
+  db.connection.query("SELECT * FROM tmp.payments", (err, results) => {
+    if (err) throw err;
+
+    res.status(200).json(results);
+  });
+}
+
+function getAll(req, res, next) {
+  db.connection.query("SELECT * FROM tmp.orders", (err, results) => {
+    if (err) throw err;
+
+    res.status(200).json(results);
+  });
+}
+
+async function test2(req, res, next) {
+  //res.sendStatus(200);
+  console.log(req.body);
+  try {
+    const { token, cart, total } = req.body;
+
+    // Create stripe customer
+    const customer = await stripe.customers.create({
+      name: token.card.name,
+      email: token.card.email,
+      source: token.id
+    });
+
+    //create stripe charge
+    const charge = await stripe.charges.create({
+      amount: total * 100,
+      currency: "usd",
+      description: "Test Charge",
+      customer: customer.id
+    });
+
+    //Inserting data to database
+    let user = {
+      id: customer.id,
+      name: token.card.name,
+      address: `${token.card.address_line1}, ${token.card.address_city}, ${token.card.address_state}, ${token.card.address_zip}, ${token.card.address_country}`,
+      email: token.email
+    };
+    let order = {
+      id: charge.id,
+      products: JSON.stringify(cart),
+      total: total,
+      userId: customer.id
+    };
+    let payment = {
+      id: charge.source.fingerprint,
+      brand: token.card.brand,
+      country: token.card.country,
+      exp_month: token.card.exp_month,
+      exp_year: token.card.exp_year,
+      funding: token.card.funding,
+      last4: token.card.last4,
+      name: token.card.name,
+      userId: customer.id
+    };
+    db.connection.query("INSERT IGNORE INTO users SET ?", user, err => {
+      if (err) throw err;
+    });
+    db.connection.query("INSERT IGNORE INTO orders SET ?", order, err => {
+      if (err) throw err;
+    });
+    db.connection.query("INSERT IGNORE INTO payments SET ?", payment, err => {
+      if (err) throw err;
+    });
+
+    //send respose
+    res.sendStatus(200);
+  } catch (err) {
+    console.log(err);
+    res.status(500);
+  }
+}
 
 async function checkout(req, res, next) {
   console.log(req.body);
