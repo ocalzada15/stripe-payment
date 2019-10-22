@@ -6,13 +6,6 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 toast.configure();
-
-// function App() {
-//   const [product] = useState({
-//     name: 'Course A',
-//     price: 30.00,
-//     description: 'First course'
-//   })
 const newCart = [];
 const amount = [];
 
@@ -46,7 +39,7 @@ class App extends Component {
   hanldeToken = async token => {
     let cart = this.state.cart;
     let total = this.state.total;
-    //console.log(token);
+
     const response = await axios.post("http://localhost:3001/api/checkout", {
       token,
       cart,
@@ -90,11 +83,11 @@ class App extends Component {
         ))}
       </div>
     ) : (
-      <div>
-        <h4>Your card is empty</h4>
-        <p>Click on "Add to cart" to add an item</p>
-      </div>
-    );
+        <div>
+          <h4>Your card is empty</h4>
+          <p>Click on "Add to cart" to add an item</p>
+        </div>
+      );
 
     return (
       <div className="container my-5">
