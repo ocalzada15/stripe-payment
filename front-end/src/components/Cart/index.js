@@ -22,14 +22,15 @@ class CheckoutForm extends Component {
     });
   };
 
-  async submit(ev) {
+  submit = async () => {
+    let customer = this.props.user;
     let cart = this.props.cart;
     let total = this.props.total;
     let { token } = await this.props.stripe.createToken({
       name: this.state.name,
       address_line1: this.state.street,
       address_city: this.state.city,
-      addresss_state: this.state.state,
+      address_state: this.state.state,
       email: this.state.email
     });
     console.log(token);
@@ -38,15 +39,28 @@ class CheckoutForm extends Component {
       {
         token,
         cart,
-        total
+        total,
+        customer
       }
     );
     console.log(response);
     if (response.data === "OK") this.setState({ complete: true });
-  }
+  };
 
   render() {
-    if (this.state.complete) return <h1>Purchase Complete</h1>;
+    if (this.state.complete)
+      return (
+        <div>
+          <h1>Purchase Completed!</h1>
+          <button
+            onClick={() => {
+              this.setState({ complete: false });
+            }}
+          >
+            Keep shopping
+          </button>
+        </div>
+      );
     return (
       <div className="checkout">
         <hr />

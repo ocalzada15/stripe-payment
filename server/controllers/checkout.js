@@ -7,13 +7,55 @@ module.exports = {
   checkout,
   getAll,
   getPayments,
-  test2
+  test2,
+  customer,
+  exCustomer
 };
+
+async function exCustomer(req, res, next) {
+  try {
+    const { name, email } = req.body;
+    const customer = await db.connection.query(
+      "SELECT id FROM tmp.users WHERE email LIKE ?",
+      `${email}`,
+      err => {
+        if (err) throw err;
+      }
+    );
+    console.log(customer);
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+// Create customer before checkout
+async function customer(req, res, next) {
+  try {
+    const { name, email } = req.body;
+    const customer = await stripe.customers.create({
+      name,
+      email
+    });
+    // add user to db
+    let user = {
+      id: customer.id,
+      name: customer.name,
+      address: customer.address,
+      email: customer.email
+    };
+    db.connection.query("INSERT IGNORE INTO users SET ?", user, err => {
+      if (err) throw err;
+    });
+
+    res.status(201).json(customer);
+  } catch (err) {
+    console.log(err);
+  }
+}
 
 function getPayments(req, res, next) {
   db.connection.query("SELECT * FROM tmp.payments", (err, results) => {
     if (err) throw err;
-
     res.status(200).json(results);
   });
 }
@@ -21,22 +63,24 @@ function getPayments(req, res, next) {
 function getAll(req, res, next) {
   db.connection.query("SELECT * FROM tmp.orders", (err, results) => {
     if (err) throw err;
-
     res.status(200).json(results);
   });
 }
 
 async function test2(req, res, next) {
-  //res.sendStatus(200);
   console.log(req.body);
   try {
-    const { token, cart, total } = req.body;
+    const { token, cart, total, customer } = req.body;
 
     // Create stripe customer
-    const customer = await stripe.customers.create({
-      name: token.card.name,
-      email: token.card.email,
-      source: token.id
+    // const customer = await stripe.customers.create({
+    //   name: token.card.name,
+    //   email: token.email,
+    //   source: token.id
+    // });
+    const source = await stripe.sources.create({
+      token: token.id,
+      type: "card"
     });
 
     //create stripe charge
@@ -44,15 +88,16 @@ async function test2(req, res, next) {
       amount: total * 100,
       currency: "usd",
       description: "Test Charge",
-      customer: customer.id
+      customer: customer.id,
+      source: source.id
     });
 
     //Inserting data to database
     let user = {
       id: customer.id,
       name: token.card.name,
-      address: `${token.card.address_line1}, ${token.card.address_city}, ${token.card.address_state}, ${token.card.address_zip}, ${token.card.address_country}`,
-      email: token.email
+      address: `${token.card.address_line1}, ${token.card.address_city}, ${token.card.address_state}, ${token.card.address_zip}, ${token.card.country}`
+      // email: token.email
     };
     let order = {
       id: charge.id,
@@ -61,7 +106,7 @@ async function test2(req, res, next) {
       userId: customer.id
     };
     let payment = {
-      id: charge.source.fingerprint,
+      id: charge.source.card.fingerprint,
       brand: token.card.brand,
       country: token.card.country,
       exp_month: token.card.exp_month,
@@ -71,9 +116,10 @@ async function test2(req, res, next) {
       name: token.card.name,
       userId: customer.id
     };
-    db.connection.query("INSERT IGNORE INTO users SET ?", user, err => {
-      if (err) throw err;
-    });
+    console.log(charge);
+    // db.connection.query("INSERT IGNORE INTO users SET ?", user, err => {
+    //   if (err) throw err;
+    // });
     db.connection.query("INSERT IGNORE INTO orders SET ?", order, err => {
       if (err) throw err;
     });
@@ -89,6 +135,7 @@ async function test2(req, res, next) {
   }
 }
 
+// first try with stripe UI
 async function checkout(req, res, next) {
   console.log(req.body);
 
