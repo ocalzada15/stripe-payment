@@ -39,6 +39,11 @@ class Landing extends Component {
       { name, email }
     );
     console.log(results);
+    const user = results.data;
+    this.props.setUser(user);
+    if (results.statusText == "OK") {
+      this.props.history.push("/checkout");
+    }
   };
 
   render() {

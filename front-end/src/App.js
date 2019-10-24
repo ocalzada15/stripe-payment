@@ -53,13 +53,12 @@ class App extends Component {
     });
   };
 
-  componentDidMount() {
-    this.getAllOrders();
-    this.getAllPayments();
-  }
-
   getAllOrders = async () => {
-    const results = await axios.get("http://localhost:3001/api/checkout/all");
+    let user = this.state.user;
+    const results = await axios.get("http://localhost:3001/api/checkout/all", {
+      user
+    });
+    console.log(results);
     this.setState({
       orders: results.data
     });
@@ -128,6 +127,9 @@ class App extends Component {
                 user={this.state.user}
                 handleDelete={this.handleDelete}
                 handleClick={this.handleClick}
+                getAllOrders={this.getAllOrders}
+                getAllPayments={this.getAllPayments}
+                setUser={this.setUser}
               />
             )}
           />

@@ -8,6 +8,11 @@ class Checkout extends Component {
   //     if (!this.props.user) this.props.history.push("/");
   //   }
 
+  componentDidMount() {
+    this.props.getAllOrders();
+    this.props.getAllPayments();
+  }
+
   render() {
     let items = this.props.state.cart.length ? (
       <div>
@@ -93,6 +98,7 @@ class Checkout extends Component {
                   <div className="example">
                     <Elements>
                       <CheckoutElm
+                        setUser={this.props.setUser}
                         user={this.props.user}
                         total={this.props.state.total}
                         cart={this.props.state.cart}

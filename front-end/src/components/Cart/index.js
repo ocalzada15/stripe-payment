@@ -26,6 +26,9 @@ class CheckoutForm extends Component {
     let customer = this.props.user;
     let cart = this.props.cart;
     let total = this.props.total;
+
+    if (total == 0) return;
+
     let { token } = await this.props.stripe.createToken({
       name: this.state.name,
       address_line1: this.state.street,
@@ -44,7 +47,16 @@ class CheckoutForm extends Component {
       }
     );
     console.log(response);
-    if (response.data === "OK") this.setState({ complete: true });
+    //if (response.data === "OK") this.setState({ complete: true });
+    if (response.statusText == "OK") {
+      this.setState({ complete: true });
+      this.props.setUser(response.data);
+    }
+  };
+
+  // test clicker
+  testClick = e => {
+    console.log(this.props.user);
   };
 
   render() {
@@ -53,6 +65,7 @@ class CheckoutForm extends Component {
         <div>
           <h1>Purchase Completed!</h1>
           <button
+            className="btn btn-warning"
             onClick={() => {
               this.setState({ complete: false });
             }}
@@ -64,6 +77,7 @@ class CheckoutForm extends Component {
     return (
       <div className="checkout">
         <hr />
+        <button onClick={this.testClick}>Test</button>
         <p>Would you like to complete the purchase?</p>
         <div className="card card-body">
           <input
