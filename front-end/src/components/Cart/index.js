@@ -128,6 +128,10 @@ class CheckoutForm extends Component {
           <button className="btn btn-success" onClick={this.submit}>
             Purchase
           </button>
+          <mati-button
+  clientid=""
+  metadata="JSON_METADATA_STRING"
+/>
         </div>
       </div>
     );
