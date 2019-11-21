@@ -146,17 +146,10 @@ class CheckoutForm extends Component {
           <button className="btn btn-success" onClick={this.submit}>
             Purchase
           </button>
-
-          <br />
-          <p>Testing id verification </p>
           <mati-button
-  clientid="5dca1ea7de8a05001ba4fa17"
+  clientid=""
   metadata="JSON_METADATA_STRING"
 />
-        </div>
-        <div className='row'>
-
-
         </div>
       </div>
     );
