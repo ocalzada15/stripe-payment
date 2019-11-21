@@ -4,9 +4,7 @@ import { Link } from "react-router-dom";
 import CheckoutElm from "../Cart";
 
 class Checkout extends Component {
-  //   componentWillMount() {
-  //     if (!this.props.user) this.props.history.push("/");
-  //   }
+
 
   componentDidMount() {
     this.props.getAllOrders();
@@ -85,15 +83,6 @@ class Checkout extends Component {
             </div>
             <div className="row">
               <div align="center" className="col mt-2">
-                {/* <StripeCheckout
-                      stripeKey={process.env.REACT_APP_STRIPE_KEY}
-                      // token={() => this.hanldeToken(this.state)}
-                      token={this.hanldeToken}
-                      billingAddress
-                      shippingAddress
-                      amount={this.state.total * 100}
-                      name="cart"
-                    /> */}
                 <StripeProvider apiKey={process.env.REACT_APP_STRIPE_KEY}>
                   <div className="example">
                     <Elements>

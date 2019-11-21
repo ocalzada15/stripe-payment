@@ -2,6 +2,8 @@ import React, { Component } from "react";
 import { CardElement, injectStripe } from "react-stripe-elements";
 import axios from "axios";
 
+
+
 class CheckoutForm extends Component {
   constructor(props) {
     super(props);
@@ -27,7 +29,7 @@ class CheckoutForm extends Component {
     let cart = this.props.cart;
     let total = this.props.total;
 
-    if (total == 0) return;
+    if (total === 0) return;
 
     let { token } = await this.props.stripe.createToken({
       name: this.state.name,
@@ -48,16 +50,32 @@ class CheckoutForm extends Component {
     );
     console.log(response);
     //if (response.data === "OK") this.setState({ complete: true });
-    if (response.statusText == "OK") {
+    if (response.statusText === "OK") {
       this.setState({ complete: true });
       this.props.setUser(response.data);
     }
   };
 
-  // test clicker
-  testClick = e => {
-    console.log(this.props.user);
-  };
+ 
+  handleFile = async () => {
+    const data = new FormData();
+    data.append('file', document.querySelector('#id-file').files[0]);
+    data.append('purpose', 'identity_document');
+    const fileResult = await fetch('https://uploads.stripe.com/v1/files', {
+      method: 'POST',
+      headers: {'Authorization': 'Bearer pk_test_TYooMQauvdEDq54NiTphI7jx'},
+      body: data,
+    });
+    const fileData = await fileResult.json();
+    console.log(fileData)
+    let response = await axios.post(
+      "http://localhost:3001/api/checkout", {
+        fileData
+      }
+    )
+    console.log(response)
+    
+  }
 
   render() {
     if (this.state.complete)
@@ -77,7 +95,7 @@ class CheckoutForm extends Component {
     return (
       <div className="checkout">
         <hr />
-        <button onClick={this.testClick}>Test</button>
+       
         <p>Would you like to complete the purchase?</p>
         <div className="card card-body">
           <input
@@ -128,6 +146,17 @@ class CheckoutForm extends Component {
           <button className="btn btn-success" onClick={this.submit}>
             Purchase
           </button>
+
+          <br />
+          <p>Testing id verification </p>
+          <mati-button
+  clientid="5dca1ea7de8a05001ba4fa17"
+  metadata="JSON_METADATA_STRING"
+/>
+        </div>
+        <div className='row'>
+
+
         </div>
       </div>
     );

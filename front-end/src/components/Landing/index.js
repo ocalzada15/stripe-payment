@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Link } from "react-router-dom";
+// import { Link } from "react-router-dom";
 import axios from "axios";
 
 class Landing extends Component {
@@ -26,7 +26,7 @@ class Landing extends Component {
     console.log(results);
     let user = results.data;
     this.props.setUser(user);
-    if (results.statusText == "Created") {
+    if (results.statusText === "Created") {
       this.props.history.push("/checkout");
     }
   };
@@ -41,7 +41,7 @@ class Landing extends Component {
     console.log(results);
     const user = results.data;
     this.props.setUser(user);
-    if (results.statusText == "OK") {
+    if (results.statusText === "OK") {
       this.props.history.push("/checkout");
     }
   };
@@ -69,9 +69,8 @@ class Landing extends Component {
               value={this.state.email}
               onChange={this.handleChange}
             />
-
             <br />
-            <button className="mb-3" onClick={this.handleCustomer}>
+            <button className="mb-3 btn btn-primary" onClick={this.handleCustomer}>
               Sign Up
             </button>
           </div>
@@ -96,7 +95,7 @@ class Landing extends Component {
               onChange={this.handleChange}
             />
             <br />
-            <button onClick={this.exCustomer}>Go</button>
+            <button className="btn btn-primary" onClick={this.exCustomer}>Go</button>
           </div>
         </div>
         {/* <Link to={"/checkout"}>

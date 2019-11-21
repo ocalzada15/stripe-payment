@@ -5,12 +5,13 @@ import "./App.css";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-import { Elements, StripeProvider } from "react-stripe-elements";
-import CheckoutElm from "./components/Cart";
+// import { Elements, StripeProvider } from "react-stripe-elements";
+// import CheckoutElm from "./components/Cart";
 
 import { BrowserRouter as Router, Route } from "react-router-dom";
 import Checkout from "./components/Checkout";
 import Landing from "./components/Landing";
+
 
 toast.configure();
 
